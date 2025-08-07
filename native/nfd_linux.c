@@ -24,12 +24,13 @@
  *
  */
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
+#include <stdlib.h> /* free() for nfdpathset_t internals */
 #include "nfd.h"
 
 static void* backend = NULL;
 
-static SDL_bool NFD_INTERNAL_LoadBackend(void)
+static bool NFD_INTERNAL_LoadBackend(void)
 {
 	static const char *backends[] =
 	{
@@ -42,10 +43,10 @@ static SDL_bool NFD_INTERNAL_LoadBackend(void)
 		backend = SDL_LoadObject(backends[i]);
 		if (backend != NULL)
 		{
-			return SDL_TRUE;
+			return true;
 		}
 	}
-	return SDL_FALSE;
+	return false;
 }
 
 nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
@@ -64,7 +65,7 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
 		const nfdchar_t *filterList,
 		const nfdchar_t *defaultPath,
 		nfdchar_t **outPath
-	) = SDL_LoadFunction(backend, "NFD_OpenDialog");
+	) = (nfdresult_t (*)(const nfdchar_t *, const nfdchar_t *, nfdchar_t **)) SDL_LoadFunction(backend, "NFD_OpenDialog");
 	return backend_OpenDialog(filterList, defaultPath, outPath);
 }
 
@@ -84,7 +85,7 @@ nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
 		const nfdchar_t *filterList,
 		const nfdchar_t *defaultPath,
 		nfdpathset_t *outPaths
-	) = SDL_LoadFunction(backend, "NFD_OpenDialogMultiple");
+	) = (nfdresult_t (*)(const nfdchar_t *, const nfdchar_t *, nfdpathset_t *))SDL_LoadFunction(backend, "NFD_OpenDialogMultiple");
 	return backend_OpenDialogMultiple(filterList, defaultPath, outPaths);
 }
 
@@ -104,7 +105,7 @@ nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
 		const nfdchar_t *filterList,
 		const nfdchar_t *defaultPath,
 		nfdchar_t **outPath
-	) = SDL_LoadFunction(backend, "NFD_SaveDialog");
+	) = (nfdresult_t (*)(const nfdchar_t *, const nfdchar_t *, nfdchar_t **)) SDL_LoadFunction(backend, "NFD_SaveDialog");
 	return backend_SaveDialog(filterList, defaultPath, outPath);
 }
 
@@ -122,7 +123,7 @@ nfdresult_t NFD_PickFolder( const nfdchar_t *defaultPath,
 	nfdresult_t (*backend_PickFolder)(
 		const nfdchar_t *defaultPath,
 		nfdchar_t **outPath
-	) = SDL_LoadFunction(backend, "NFD_PickFolder");
+	) = (nfdresult_t (*)(const nfdchar_t *, nfdchar_t **)) SDL_LoadFunction(backend, "NFD_PickFolder");
 	return backend_PickFolder(defaultPath, outPath);
 }
 
@@ -133,7 +134,7 @@ const char *NFD_GetError( void )
 		return "No NFD backend has been loaded!";
 	}
 
-	const char *(*backend_GetError)(void) = SDL_LoadFunction(backend, "NFD_GetError");
+	const char *(*backend_GetError)(void) = (const char * (*)(void)) SDL_LoadFunction(backend, "NFD_GetError");
 	return backend_GetError();
 }
 

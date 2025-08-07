@@ -11,7 +11,7 @@ rm -f nfd.dll
 # Linux (includes GTK, Zenity, and a library to support both)
 cc -O3 -fpic -fPIC -shared -o libnfd_gtk.so nfd_common.c nfd_gtk.c `pkg-config --cflags gtk+-3.0` -lgtk-3 -lgobject-2.0 -lglib-2.0 -Wl,--no-undefined
 cc -O3 -fpic -fPIC -shared -o libnfd_zenity.so nfd_common.c nfd_zenity.c -Wl,--no-undefined
-cc -O3 -fpic -fPIC -shared -o libnfd.so nfd_linux.c `sdl2-config --cflags --libs` -Wl,--no-undefined
+cc -O3 -fpic -fPIC -shared -o libnfd.so nfd_linux.c -lSDL3 -Wl,--no-undefined
 
 # Windows
 x86_64-w64-mingw32-gcc -O3 -fpic -fPIC -shared -o nfd.dll nfd_win.c nfd_common.c -lole32
