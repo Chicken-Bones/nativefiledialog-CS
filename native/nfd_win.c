@@ -414,13 +414,13 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
     }
 
     // Build the filter list
-    if ( !AddFiltersToDialog( fileOpenDialog, filterList ) )
+    if ( !AddFiltersToDialog( (IFileDialog*)fileOpenDialog, filterList ) )
     {
         goto end;
     }
 
     // Set the default path
-    if ( !SetDefaultPath( fileOpenDialog, defaultPath ) )
+    if ( !SetDefaultPath( (IFileDialog*)fileOpenDialog, defaultPath ) )
     {
         goto end;
     }    
@@ -505,13 +505,13 @@ nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
     }
 
     // Build the filter list
-    if ( !AddFiltersToDialog( fileOpenDialog, filterList ) )
+    if ( !AddFiltersToDialog( (IFileDialog*)fileOpenDialog, filterList ) )
     {
         goto end;
     }
 
     // Set the default path
-    if ( !SetDefaultPath( fileOpenDialog, defaultPath ) )
+    if ( !SetDefaultPath( (IFileDialog*)fileOpenDialog, defaultPath ) )
     {
         goto end;
     }
@@ -598,13 +598,13 @@ nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
     }
 
     // Build the filter list
-    if ( !AddFiltersToDialog( fileSaveDialog, filterList ) )
+    if ( !AddFiltersToDialog( (IFileDialog*)fileSaveDialog, filterList ) )
     {
         goto end;
     }
 
     // Set the default path
-    if ( !SetDefaultPath( fileSaveDialog, defaultPath ) )
+    if ( !SetDefaultPath( (IFileDialog*)fileSaveDialog, defaultPath ) )
     {
         goto end;
     }
@@ -690,7 +690,7 @@ nfdresult_t NFD_PickFolder(const nfdchar_t *defaultPath,
     }
 
     // Set the default path
-    if (SetDefaultPath(fileDialog, defaultPath) != NFD_OKAY)
+    if (SetDefaultPath((IFileDialog*)fileDialog, defaultPath) != NFD_OKAY)
     {
         NFDi_SetError("SetDefaultPath failed.");
         goto end;
