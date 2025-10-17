@@ -1,0 +1,75 @@
+name: 'Build (All)'
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - name: Linux x64
+            runner: ubuntu-24.04
+            artifact: libnfd-linux-x64
+            arch: amd64
+
+          - name: Linux ARM64
+            runner: ubuntu-24.04-arm
+            artifact: libnfd-linux-arm64
+            arch: arm64
+
+          - name: macOS Universal
+            runner: macos-14
+            artifact: libnfd-macos-universal
+
+          - name: Windows x64
+            runner: windows-latest
+            artifact: libnfd-windows-x64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build for Linux
+        if: startsWith(matrix.runner, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libglib2.0-dev
+          
+          # Build SDL3
+          git clone https://github.com/libsdl-org/SDL.git SDL3
+          cd SDL3
+          mkdir build && cd build
+          cmake .. -DSDL_STATIC=OFF -DCMAKE_INSTALL_PREFIX=/usr/local
+          make -j$(nproc)
+          sudo make install
+          cd ../..
+          
+          cd native
+          cc -O3 -fpic -fPIC -shared -o libnfd_gtk.so nfd_common.c nfd_gtk.c `pkg-config --cflags gtk+-3.0` -lgtk-3 -lgobject-2.0 -lglib-2.0 -Wl,--no-undefined
+          cc -O3 -fpic -fPIC -shared -o libnfd_zenity.so nfd_common.c nfd_zenity.c -Wl,--no-undefined
+          cc -O3 -fpic -fPIC -shared -o libnfd.so nfd_linux.c -lSDL3 -Wl,--no-undefined
+
+      - name: Build for macOS
+        if: startsWith(matrix.runner, 'macos')
+        run: |
+          cd native
+          clang -arch arm64 -arch x86_64 \
+            -mmacosx-version-min=10.9 -O3 -fpic -fPIC -shared -o libnfd.dylib nfd_common.c nfd_cocoa.m -lobjc -framework Cocoa -install_name @rpath/libnfd.dylib
+
+      - name: Build for Windows
+        if: startsWith(matrix.runner, 'windows')
+        shell: bash
+        run: |
+          cd native
+          gcc -O3 -fpic -fPIC -shared -o nfd.dll nfd_win.c nfd_common.c -lole32
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            native/*.so
+            native/*.dylib
+            native/*.dll
